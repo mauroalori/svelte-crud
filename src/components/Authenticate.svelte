@@ -1,5 +1,5 @@
 <script>
-  import { authHandlers } from "../store/store";
+    import { authHandlers } from "../store/store";
 
     let email,
     password,
@@ -32,10 +32,9 @@
         }
         catch(error){
             console.log("Error de autenticacion ",error)
-            error = true
+            error = true;
+            authenticating = false;
         }
-        
-        authenticating = false;
     }
 
     function handleRegister(){

@@ -1,9 +1,17 @@
 <script>
-  import { authHandlers } from "../../store/store";
+    import { authHandlers, authStore } from "../../store/store";
+    import { doc, setDoc } from 'firebase/firestore';
+    import { db } from "../../lib/firebase/firebase";
+
+    import TodoItem from "../../components/TodoItem.svelte";
 
     let todoList = [];
     let currTodo = '';
     let error = false; 
+
+    authStore.subscribe((curr) => {
+        todoList = curr.data.todos
+    })
 
     function addTodo(){
         error = false
@@ -28,13 +36,29 @@
         })
         todoList = newTodoList
     }
+
+    async function saveTodos() {
+        try{
+            const userRef = doc(db, 'users', $authStore.user.uid);
+            await setDoc(userRef, {
+                todos: todoList
+            },
+            {
+                merge: true
+            }
+            )
+        }
+        catch(error){
+            console.log("Hubo un error al guardar la informacion", error)
+        }
+    }
 </script>
 
 <div class="mainContainer">
     <div class="headerContainer">
         <h1>Lista de tareas</h1>
         <div class="headerBtns">
-            <button>
+            <button on:click={saveTodos}>
                 <i class="fa-solid fa-floppy-disk"></i>
                 <p>Guardar</p>
             </button>
@@ -44,24 +68,17 @@
             </button>
         </div>
     </div>
-    <main>
-        {#if todoList.length === 0}
-            <p>No tienes nada para hacer</p>
-        {/if}
-        {#each todoList as todo, index}
-            <div class="todo">
-                {index+1}. {todo}
-                <div class="actions">
-                    <i on:click={() => {
-                        editTodo(index)
-                    }} on:keydown={() => {}} class="fa-solid fa-pen"></i>
-                    <i on:click={() => {
-                        removeTodo(index)
-                    }} on:keydown={()=>{}} class="fa-solid fa-trash-can"></i>
-                </div>
-            </div>
-        {/each}
-    </main>
+    {#if !$authStore.loading}
+        <main>
+            {#if todoList.length === 0}
+                <p>No tienes nada para hacer</p>
+            {/if}
+            {#each todoList as todo, index}
+                <TodoItem {todo} {index} {removeTodo} {editTodo}/>
+            {/each}
+        </main>
+    {/if}
+    
     <div class={"enterTodo " + (error ? 'errorBorder' : '')}>
         <input bind:value={currTodo} type="text" placeholder="Ingresar tarea">
         <button on:click={addTodo}>AGREGAR</button>
@@ -118,26 +135,6 @@
         flex-direction: column;
         gap: 8px;
         flex: 1;
-    }
-
-    .todo{
-        border-left: 1px solid cyan;
-        padding: 8px 14px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-
-    .actions{
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 1.2rem;
-    }
-
-    .actions i:hover{
-        color: coral;
-        cursor: pointer;
     }
     
     .enterTodo {
