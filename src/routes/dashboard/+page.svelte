@@ -1,4 +1,6 @@
 <script>
+  import { authHandlers } from "../../store/store";
+
     let todoList = [];
     let currTodo = '';
     let error = false; 
@@ -36,7 +38,7 @@
                 <i class="fa-solid fa-floppy-disk"></i>
                 <p>Guardar</p>
             </button>
-            <button>
+            <button on:click={authHandlers.logout}>
                 <i class="fa-solid fa-right-from-bracket"></i>
                 <p>Salir</p>
             </button>

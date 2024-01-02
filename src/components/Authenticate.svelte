@@ -1,15 +1,41 @@
 <script>
+  import { authHandlers } from "../store/store";
+
     let email,
     password,
     confirmPass,
     error = false,
-    register = false;
+    register = false,
+    authenticating = false;
 
-    function handleAuthenticate(){
+
+    async function handleAuthenticate(){
+        if(authenticating){
+            return
+        }
+        
         if(!email || !password || (register && !confirmPass)){
             error = true;
             return
         }
+
+        authenticating = true;
+        
+        try{
+            
+            if(!register){
+                await authHandlers.login(email, password)
+            }
+            else{
+                await authHandlers.signup(email, password)
+            }
+        }
+        catch(error){
+            console.log("Error de autenticacion ",error)
+            error = true
+        }
+        
+        authenticating = false;
     }
 
     function handleRegister(){
@@ -38,7 +64,13 @@
                 <input bind:value={confirmPass} type="password" placeholder="Confirmar contraseña">
             </label>
         {/if}
-        <button type="button" on:click={handleAuthenticate}>Enviar</button>
+        <button type="button" on:click={handleAuthenticate}>
+            {#if authenticating}
+                <i class="fa-solid fa-spinner spin"></i>
+            {:else}
+                Enviar
+            {/if}
+        </button>
     </form>
     <div class="options">
         <p>O</p>
@@ -116,6 +148,8 @@
         border-radius: 5px;
         cursor: pointer;
         font-size: 1rem;
+        display: grid;
+        place-items: center;
     }
 
     form button:hover{
@@ -152,6 +186,7 @@
     .error{
         color: coral;
         font-size: .9rem;
+        text-align: center;
     }
     
     .options{
@@ -199,5 +234,18 @@
     .options div p:last-of-type{
         color: cyan;
         cursor: pointer;
+    }
+
+    .spin {
+        animation: spin 2s infinite
+    }
+
+    @keyframes spin {
+        from{
+            transform: rotate(0deg)
+        }
+        to{
+            transform: rotate(360deg)
+        }
     }
 </style>
